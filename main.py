@@ -1,5 +1,6 @@
 import sys
 from MaltegoTransform import *
+import requests
 
 # Create a Maltego transform object
 m = MaltegoTransform()
@@ -15,7 +16,7 @@ def check_email(email):
         for breach in breaches:
             # Add a new entity to the Maltego graph for each breach
             m.addEntity("maltego.Breach", breach["Name"])
-            search_dehashed(email)
+        search_dehashed(email)
     else:
         m.addUIMessage("The email address has not been compromised.")
 
@@ -29,6 +30,18 @@ def search_dehashed(email):
             for record in data['records']:
                 # Add a new entity to the Maltego graph for each breach found in dehashed
                 m.addEntity("maltego.Breach", record['breach'])
+                # Add new entities for each object returned in the Dehashed API
+                for key, value in record.items():
+                    if key == 'email':
+                        m.addEntity("maltego.EmailAddress", value)
+                    elif key == 'username':
+                        m.addEntity("maltego.Username", value)
+                    elif key == 'password':
+                        m.addEntity("maltego.Password", value)
+                    elif key == 'phone':
+                        m.addEntity("maltego.PhoneNumber", value)
+                    elif key == 'address':
+                        m.addEntity("maltego.Location", value)
     else:
         m.addUIMessage("Error: Unable to fetch data from Dehashed API.")
 
